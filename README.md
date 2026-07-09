@@ -60,21 +60,23 @@ Abre [http://localhost:3000](http://localhost:3000). Faz login com `walter.bruno
 
 ## Passo 4 — Publicar (deixar acessível de qualquer lugar)
 
-1. Sobe o código pro GitHub (repositório `appfinan-as`, que você já criou):
-   ```bash
-   git init
-   git add .
-   git commit -m "Casa Leite — versão inicial"
-   git remote add origin https://github.com/walterbrunoleite/appfinan-as.git
-   git branch -M main
-   git push -u origin main
-   ```
-2. Entra em [vercel.com/new](https://vercel.com/new), importa o repositório `appfinan-as`
-3. Nas variáveis de ambiente, adiciona as mesmas 3 do `.env.local` (troca `NEXT_PUBLIC_SITE_URL` pela URL que a Vercel vai te dar, tipo `https://appfinan-as.vercel.app`)
-4. Clica em **Deploy**
-5. Volta no Supabase → **Authentication** → **URL Configuration** e adiciona a URL da Vercel em "Redirect URLs"
+✅ **Já feito.** O app está no ar em **[https://appfinan-as-teal.vercel.app](https://appfinan-as-teal.vercel.app)**.
 
-Pronto — você e a Nat acessam de qualquer celular ou computador, de graça.
+Se um dia precisar redeployar manualmente (normalmente não precisa — todo push na branch `main` do GitHub já dispara um deploy automático):
+
+```bash
+npx vercel deploy --prod
+```
+
+Se precisar mudar alguma variável de ambiente de produção:
+
+```bash
+npx vercel env ls production          # ver o que já existe
+npx vercel env add NOME_DA_VAR production   # adicionar/atualizar
+npx vercel env rm NOME_DA_VAR production    # remover
+```
+
+Pronto — você e a Nat acessam de qualquer celular ou computador, de graça, em **appfinan-as-teal.vercel.app**.
 
 ---
 
