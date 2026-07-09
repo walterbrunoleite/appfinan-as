@@ -5,6 +5,7 @@ import { MonthSwitcher } from "@/components/dashboard/month-switcher";
 import { TransactionDialog } from "@/components/lancamentos/transaction-dialog";
 import { TransactionRowActions } from "@/components/lancamentos/transaction-row-actions";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Table,
@@ -98,8 +99,20 @@ export default async function LancamentosPage({
                             {category?.name ?? "—"}
                           </span>
                         </TableCell>
-                        <TableCell className="max-w-48 truncate text-muted-foreground">
-                          {t.description || "—"}
+                        <TableCell className="max-w-48 text-muted-foreground">
+                          <span className="flex items-center gap-2">
+                            <span className="truncate">
+                              {t.description || "—"}
+                            </span>
+                            {t.installment_total && (
+                              <Badge
+                                variant="secondary"
+                                className="shrink-0 text-xs"
+                              >
+                                {t.installment_number}/{t.installment_total}
+                              </Badge>
+                            )}
+                          </span>
                         </TableCell>
                         <TableCell className="whitespace-nowrap text-muted-foreground">
                           {person?.display_name ?? "Compartilhado"}

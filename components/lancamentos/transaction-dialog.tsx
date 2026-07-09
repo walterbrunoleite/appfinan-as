@@ -22,8 +22,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { Loader2 } from "lucide-react";
 import { createTransaction, updateTransaction } from "@/lib/actions";
+import { formatCurrency } from "@/lib/format";
 import type { Category, HouseholdMember, Transaction, CategoryKind } from "@/lib/supabase/types";
 
 function todayISO() {
@@ -59,6 +61,8 @@ export function TransactionDialog({
     transaction?.occurred_on ?? todayISO(),
   );
   const [description, setDescription] = useState(transaction?.description ?? "");
+  const [parceled, setParceled] = useState(false);
+  const [installments, setInstallments] = useState("2");
   const [submitting, setSubmitting] = useState(false);
 
   const filteredCategories = categories.filter((c) => c.kind === kind);
@@ -70,7 +74,16 @@ export function TransactionDialog({
     setAmount("");
     setOccurredOn(todayISO());
     setDescription("");
+    setParceled(false);
+    setInstallments("2");
   }
+
+  const installmentCount = Math.max(2, parseInt(installments, 10) || 2);
+  const parsedAmountPreview = Number(amount.replace(",", "."));
+  const installmentPreview =
+    parceled && parsedAmountPreview > 0
+      ? parsedAmountPreview / installmentCount
+      : 0;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -94,6 +107,7 @@ export function TransactionDialog({
         amount: parsedAmount,
         occurredOn,
         description,
+        installments: parceled ? installmentCount : undefined,
       };
 
       if (isEdit) {
@@ -101,7 +115,11 @@ export function TransactionDialog({
         toast.success("Lançamento atualizado.");
       } else {
         await createTransaction(input);
-        toast.success("Lançamento adicionado.");
+        toast.success(
+          parceled
+            ? `${installmentCount} parcelas de ${formatCurrency(installmentPreview)} criadas.`
+            : "Lançamento adicionado.",
+        );
       }
 
       setOpen(false);
@@ -143,7 +161,9 @@ export function TransactionDialog({
           </Tabs>
 
           <div className="flex flex-col gap-2">
-            <Label htmlFor="amount">Valor</Label>
+            <Label htmlFor="amount">
+              {parceled ? "Valor total da compra" : "Valor"}
+            </Label>
             <Input
               id="amount"
               inputMode="decimal"
@@ -153,6 +173,48 @@ export function TransactionDialog({
               required
             />
           </div>
+
+          {!isEdit && (
+            <div className="flex flex-col gap-3 rounded-lg border border-border/60 px-3 py-2.5">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-foreground">
+                    Parcelar essa compra
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Divide em parcelas mensais iguais
+                  </p>
+                </div>
+                <Switch checked={parceled} onCheckedChange={setParceled} />
+              </div>
+
+              {parceled && (
+                <div className="flex items-center gap-3">
+                  <div className="flex flex-1 flex-col gap-1">
+                    <Label htmlFor="installments" className="text-xs">
+                      Número de parcelas
+                    </Label>
+                    <Input
+                      id="installments"
+                      type="number"
+                      min={2}
+                      max={48}
+                      value={installments}
+                      onChange={(e) => setInstallments(e.target.value)}
+                    />
+                  </div>
+                  {installmentPreview > 0 && (
+                    <p className="pt-4 text-xs text-muted-foreground">
+                      {installmentCount}x de{" "}
+                      <span className="font-medium text-foreground">
+                        {formatCurrency(installmentPreview)}
+                      </span>
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
 
           <div className="flex flex-col gap-2">
             <Label>Categoria</Label>

@@ -38,6 +38,9 @@ export interface Transaction {
   description: string;
   created_by: string;
   created_at: string;
+  installment_group_id: string | null;
+  installment_number: number | null;
+  installment_total: number | null;
 }
 
 export interface Budget {

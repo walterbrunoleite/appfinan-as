@@ -20,6 +20,27 @@ export interface TransactionInput {
   amount: number;
   occurredOn: string;
   description: string;
+  installments?: number;
+}
+
+function addMonths(dateStr: string, months: number): string {
+  const [year, month, day] = dateStr.split("-").map(Number);
+  const d = new Date(Date.UTC(year, month - 1 + months, 1));
+  const lastDayOfTargetMonth = new Date(
+    Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 0),
+  ).getUTCDate();
+  d.setUTCDate(Math.min(day, lastDayOfTargetMonth));
+  return d.toISOString().slice(0, 10);
+}
+
+/** Divide um valor total em N parcelas de 2 casas decimais, sem perder centavos por arredondamento. */
+function splitIntoInstallments(totalAmount: number, count: number): number[] {
+  const totalCents = Math.round(totalAmount * 100);
+  const baseCents = Math.floor(totalCents / count);
+  const remainder = totalCents - baseCents * count;
+  return Array.from({ length: count }, (_, i) =>
+    (baseCents + (i < remainder ? 1 : 0)) / 100,
+  );
 }
 
 export async function createTransaction(input: TransactionInput) {
@@ -30,18 +51,40 @@ export async function createTransaction(input: TransactionInput) {
   } = await supabase.auth.getUser();
   if (!user) throw new Error("Sem acesso à família");
 
-  const { error } = await supabase.from("transactions").insert({
-    household_id: ctx.householdId,
-    category_id: input.categoryId,
-    person_id: input.personId,
-    kind: input.kind,
-    amount: input.amount,
-    occurred_on: input.occurredOn,
-    description: input.description,
-    created_by: user.id,
-  });
+  const installmentCount = input.installments ?? 1;
 
-  if (error) throw new Error(error.message);
+  if (installmentCount <= 1) {
+    const { error } = await supabase.from("transactions").insert({
+      household_id: ctx.householdId,
+      category_id: input.categoryId,
+      person_id: input.personId,
+      kind: input.kind,
+      amount: input.amount,
+      occurred_on: input.occurredOn,
+      description: input.description,
+      created_by: user.id,
+    });
+    if (error) throw new Error(error.message);
+  } else {
+    const groupId = crypto.randomUUID();
+    const amounts = splitIntoInstallments(input.amount, installmentCount);
+    const rows = amounts.map((amount, i) => ({
+      household_id: ctx.householdId,
+      category_id: input.categoryId,
+      person_id: input.personId,
+      kind: input.kind,
+      amount,
+      occurred_on: addMonths(input.occurredOn, i),
+      description: input.description,
+      created_by: user.id,
+      installment_group_id: groupId,
+      installment_number: i + 1,
+      installment_total: installmentCount,
+    }));
+    const { error } = await supabase.from("transactions").insert(rows);
+    if (error) throw new Error(error.message);
+  }
+
   revalidatePath("/");
   revalidatePath("/lancamentos");
   revalidatePath("/orcamento");
