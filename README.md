@@ -10,7 +10,7 @@ Controle financeiro da família — Walter e Nat. Grátis, privado, só para voc
 - Lançamentos (adicionar/editar/excluir despesas e receitas)
 - Orçamento mensal por categoria (com aviso quando estourar)
 - Categorias personalizáveis (cor + ícone)
-- Login por link mágico — sem senha — só para `walter.bruno.leite@gmail.com` e `nleite23@gmail.com`
+- Login por email e senha, só para `walter.bruno.leite@gmail.com` e `nleite23@gmail.com` (com recuperação de senha por email)
 
 Custo pra manter isso rodando: **R$ 0/mês** (Supabase free + Vercel free).
 
@@ -54,7 +54,9 @@ npm install
 npm run dev
 ```
 
-Abre [http://localhost:3000](http://localhost:3000). Faz login com `walter.bruno.leite@gmail.com`, abre o email, clica no link. Depois é a vez da Nat fazer o mesmo com `nleite23@gmail.com` — ela entra automaticamente na mesma família, sem precisar de nenhum passo técnico.
+Abre [http://localhost:3000](http://localhost:3000). Na tela de login, clica em **"Primeira vez? Criar senha"**, usa `walter.bruno.leite@gmail.com` e escolhe uma senha (mínimo 8 caracteres). Depois é a vez da Nat fazer o mesmo com `nleite23@gmail.com` — ela entra automaticamente na mesma família, sem precisar de nenhum passo técnico além de criar a senha dela.
+
+Esqueceu a senha? Tem um link "Esqueci minha senha" na tela de login que manda um email pra redefinir.
 
 ---
 
